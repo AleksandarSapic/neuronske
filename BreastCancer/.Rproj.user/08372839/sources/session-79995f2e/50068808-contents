@@ -9,19 +9,21 @@ normalize_max <- function(col) {
 }
 
 #Normalizacija podataka
-apply(data[, c(1:30)], MARGIN = 2, FUN = normalize_max)
+data.std = apply(data[, c(1:30)], MARGIN = 2, FUN = normalize_max)
+data.std = as.data.frame(data.std)
+data.std$X1 = data$X1
 
 #Mesanje redova u data setu
 set.seed(123)
-data <- data[sample(1:nrow(data)), ]
+data.std <- data.std[sample(1:nrow(data.std)),]
 
 #Kreiranje trening i test seta
 library(caret)
 set.seed(123)
 train.indicies <-
-  createDataPartition(data$X1, p = 0.65, list = FALSE)
-train.data <- data[train.indicies, ]
-test.data <- data[-train.indicies,]
+  createDataPartition(data.std$X1, p = 0.65, list = FALSE)
+train.data <- data.std[train.indicies,]
+test.data <- data.std[-train.indicies, ]
 
 #Treniranje neuronske mreze
 library(neuralnet)
@@ -31,6 +33,7 @@ library(neuralnet)
 nn1 <- neuralnet(
   X1 ~ .,
   data = train.data,
+  err.fct = 'ce',
   hidden = 10,
   learningrate = 0.2,
   linear.output = FALSE
@@ -48,6 +51,7 @@ nn1.mse <- mean((test.data$X1 - nn1.predictions) ^ 2)
 nn2 <- neuralnet(
   X1 ~ .,
   data = train.data,
+  err.fct = 'ce',
   hidden = 20,
   learningrate = 0.4,
   linear.output = FALSE
@@ -64,6 +68,7 @@ nn2.mse <- mean((test.data$X1 - nn2.predictions) ^ 2)
 nn3 <- neuralnet(
   X1 ~ .,
   data = train.data,
+  err.fct = 'ce',
   hidden = 30,
   learningrate = 0.6,
   linear.output = FALSE
@@ -80,4 +85,4 @@ mse.compare
 
 #Mreza sa najmanjom greskom je NN2
 #Cuvanje mreze u fajl
-saveRDS(nn1, file = 'neural_net_model.rds')
+saveRDS(nn2, file = 'neural_net_model.rds')
